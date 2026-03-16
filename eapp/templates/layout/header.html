@@ -1,46 +1,64 @@
-<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/">e-Commerce Website</a>
+    <a class="navbar-brand fw-bold text-uppercase" href="/">CaoThe Website</a>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="collapsibleNavbar">
-      <ul class="navbar-nav me-auto">
+
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link active" href="/">Trang chủ</a>
         </li>
-        {% for c in categories %}
+
         <li class="nav-item">
-          <a class="nav-link" href="/?category_id={{ c.id }}">{{ c.name }}</a>
+          <a class="nav-link text-warning fw-bold" href="/khuyen-mai">Khuyến mãi</a>
         </li>
-        {% endfor %}
 
         {% if current_user.is_authenticated %}
         <li class="nav-item">
-          <a class="nav-link text-danger" href="/">
-            <img src="{{ current_user.avatar }}" class="rounded-circle" width="40" />
-            Chào {{ current_user.username }}!
-          </a>
+          <a class="nav-link" href="/lich-su-giao-dich">Lịch sử giao dịch</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-danger" href="/logout">Đăng xuất</a>
+          <a class="nav-link" href="/kho-the">Kho thẻ đã mua</a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item me-3 mb-2 mb-lg-0">
+          <a class="btn btn-outline-success position-relative" href="/cart">
+            &#128722; Giỏ hàng
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-counter">
+              {{ cart_stats.total_quantity if cart_stats else 0 }}
+            </span>
+          </a>
+        </li>
+
+        {% if current_user.is_authenticated %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center text-light" href="#" role="button" data-bs-toggle="dropdown">
+            <img src="{{ current_user.avatar }}" class="rounded-circle me-2" width="30" height="30" style="object-fit: cover;" alt="Avatar" />
+            Xin chào, {{ current_user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li><a class="dropdown-item" href="/profile">Thông tin tài khoản</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="/logout">Đăng xuất</a></li>
+          </ul>
         </li>
         {% else %}
         <li class="nav-item">
-          <a class="nav-link text-danger" href="/login">Đăng nhập</a>
+          <a class="nav-link text-light" href="/login">Đăng nhập</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-success" href="/register">Đăng ký</a>
+          <a class="nav-link text-info" href="/register">Đăng ký</a>
         </li>
         {% endif %}
-       <li class="nav-item">
-          <a class="nav-link text-success" href="/cart">&#128722; <span class="badge bg-danger cart-counter">{{ cart_stats.total_quantity }}</span></a>
-        </li>
       </ul>
-      <form class="d-flex" method="get" action="/">
-        <input class="form-control me-2" type="text" placeholder="Tìm sản phẩm..." name="kw" />
-        <button class="btn btn-primary" type="submit">Tìm</button>
-      </form>
+
     </div>
   </div>
 </nav>
