@@ -29,8 +29,11 @@ class CardType(PyEnum):
 
 class User(BaseModel, UserMixin):
     name = Column(String(50), nullable=False)
-    avatar = Column(String(255), default='https://res.cloudinary.com/default_avatar.jpg')
+    avatar = Column(String(255), default='https://res.cloudinary.com/dfgicbdji/image/upload/v1773807215/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration_tjibsq.jpg')
     username = Column(String(50), nullable=False, unique=True)
+
+    email = Column(String(100), nullable=False, unique=True)
+
     password = Column(String(50), nullable=False)
     user_role = Column(Enum(UserRole), default=UserRole.USER)
 
@@ -40,7 +43,7 @@ class User(BaseModel, UserMixin):
 class Category(BaseModel):
     name = Column(String(50), unique=True, nullable=False)
     card_type = Column(Enum(CardType), default=CardType.PHONE, nullable=False)
-
+    image = Column(String(255), nullable=True)
     products = relationship('Product', backref='category', lazy=True)
 
 
@@ -101,32 +104,41 @@ class ReceiptDetails(BaseModel):
     quantity = Column(Integer, default=1)
     unit_price = Column(Float, default=0)
 
+
 if __name__ == '__main__':
     with app.app_context():
         db.drop_all()
         db.create_all()
 
         import hashlib
-        import random
         import uuid
         from datetime import datetime, timedelta
 
         admin = User(name='Admin', username='admin',
+                     email='donguyen6c@gmail.com',
                      password=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
                      user_role=UserRole.ADMIN)
 
         test_user = User(name='Khách hàng', username='user',
+                         email='doly2301a@gmail.com',
                          password=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
                          user_role=UserRole.USER)
 
         db.session.add_all([admin, test_user])
         db.session.commit()
 
-        cat_viettel = Category(name='Viettel', card_type=CardType.PHONE)
-        cat_mobi = Category(name='Mobifone', card_type=CardType.PHONE)
-        cat_vina = Category(name='Vinaphone', card_type=CardType.PHONE)
-        cat_garena = Category(name='Garena', card_type=CardType.GAME)
-        cat_zing = Category(name='Zing', card_type=CardType.GAME)
+        cat_viettel = Category(name='Viettel', card_type=CardType.PHONE,
+                               image='https://res.cloudinary.com/dfgicbdji/image/upload/v1773654323/viettel_lu78eq.png')
+        cat_mobi = Category(name='Mobifone', card_type=CardType.PHONE,
+                            image='https://res.cloudinary.com/dfgicbdji/image/upload/v1773654323/mobi_hlcgr2.png')
+        cat_vina = Category(name='Vinaphone', card_type=CardType.PHONE,
+                            image='https://res.cloudinary.com/dfgicbdji/image/upload/v1773654323/vina_icazwc.png')
+
+        cat_garena = Category(name='Garena', card_type=CardType.GAME,
+                              image='https://res.cloudinary.com/dfgicbdji/image/upload/v1773654323/garena_jr4pg1.png')
+        cat_zing = Category(name='Zing', card_type=CardType.GAME,
+                            image='https://res.cloudinary.com/dfgicbdji/image/upload/v1773654323/zing_gkfb9w.png')
+
 
         db.session.add_all([cat_viettel, cat_mobi, cat_vina, cat_garena, cat_zing])
         db.session.commit()

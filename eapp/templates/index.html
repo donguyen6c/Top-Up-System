@@ -1,12 +1,165 @@
 {% extends 'layout/base.html' %}
 
-{% block title %}Trang chủ{% endblock %}
+{% block title %}Trang chủ - Hệ thống bán thẻ cào{% endblock %}
 
 {% block content %}
-{% if products %}
+<div class="container mt-4 mb-5">
+    <div class="row">
 
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
 
-{% else %}
-<div class="alert alert-danger mt-2">Không có sản phẩm nào!</div>
-{% endif %}
+                <div class="card-header bg-white p-0 border-bottom">
+                    <ul class="nav nav-tabs nav-fill" id="main-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold py-3 text-uppercase text-dark"
+                                    id="tab-main-phone" data-bs-toggle="tab" data-bs-target="#section-phone"
+                                    type="button" role="tab">
+                                Mua thẻ điện thoại
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold py-3 text-uppercase text-dark"
+                                    id="tab-main-game" data-bs-toggle="tab" data-bs-target="#section-game"
+                                    type="button" role="tab">
+                                Mua thẻ game
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="tab-content" id="main-tabsContent">
+
+                        <div class="tab-pane fade show active" id="section-phone" role="tabpanel">
+
+                            <h6 class="fw-bold mb-3">Chọn nhà cung cấp</h6>
+                            <ul class="nav nav-pills mb-4" id="phone-provider-tabs" role="tablist">
+                                {% for c in phone_categories %}
+                                <li class="nav-item me-3 mb-2" role="presentation">
+                                    <button class="nav-link {% if loop.first %}active{% endif %} p-1 border"
+                                            id="tab-phone-{{ c.id }}" data-bs-toggle="pill" data-bs-target="#content-phone-{{ c.id }}"
+                                            type="button" role="tab" style="border-radius: 8px;">
+                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}"
+                                             alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
+                                    </button>
+                                </li>
+                                {% endfor %}
+                            </ul>
+
+                            <h6 class="fw-bold mb-3">Chọn mệnh giá</h6>
+                            <div class="tab-content" id="phone-provider-tabsContent">
+                                {% for c in phone_categories %}
+                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="content-phone-{{ c.id }}" role="tabpanel">
+                                    <div class="row g-3">
+                                        {% for p in products if p.category_id == c.id %}
+                                        <div class="col-lg-3 col-md-4 col-sm-6 col-6">
+                                            <button class="btn btn-outline-primary w-100 py-2 fw-bold product-btn"
+                                                    data-id="{{ p.id }}"
+                                                    data-name="{{ p.name }}"
+                                                    data-price="{{ p.price }}"
+                                                    data-carrier="{{ c.name }}"
+                                                    style="border-radius: 8px;">
+                                                {{ "{:,.0f}".format(p.price) }} đ
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+
+                        <div class="tab-pane fade" id="section-game" role="tabpanel">
+
+                            <h6 class="fw-bold mb-3">Chọn nhà cung cấp</h6>
+                            <ul class="nav nav-pills mb-4" id="game-provider-tabs" role="tablist">
+                                {% for c in game_categories %}
+                                <li class="nav-item me-3 mb-2" role="presentation">
+                                    <button class="nav-link {% if loop.first %}active{% endif %} p-1 border"
+                                            id="tab-game-{{ c.id }}" data-bs-toggle="pill" data-bs-target="#content-game-{{ c.id }}"
+                                            type="button" role="tab" style="border-radius: 8px;">
+                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}"
+                                             alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
+                                    </button>
+                                </li>
+                                {% endfor %}
+                            </ul>
+
+                            <h6 class="fw-bold mb-3">Chọn mệnh giá</h6>
+                            <div class="tab-content" id="game-provider-tabsContent">
+                                {% for c in game_categories %}
+                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="content-game-{{ c.id }}" role="tabpanel">
+                                    <div class="row g-3">
+                                        {% for p in products if p.category_id == c.id %}
+                                        <div class="col-lg-3 col-md-4 col-sm-6 col-6">
+                                            <button class="btn btn-outline-success w-100 py-2 fw-bold product-btn"
+                                                    data-id="{{ p.id }}"
+                                                    data-name="{{ p.name }}"
+                                                    data-price="{{ p.price }}"
+                                                    data-carrier="{{ c.name }}"
+                                                    style="border-radius: 8px;">
+                                                {{ "{:,.0f}".format(p.price) }} đ
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-header bg-white border-bottom p-3">
+                    <h5 class="mb-0 fw-bold text-center">THÔNG TIN THANH TOÁN</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="checkout-form" method="POST" action="/checkout">
+                        <input type="hidden" name="product_id" id="form-product-id" value="">
+
+                        <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                            <span class="text-secondary">Nhà cung cấp:</span>
+                            <strong id="bill-carrier" class="text-dark">---</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                            <span class="text-secondary">Mệnh giá:</span>
+                            <strong id="bill-price" class="text-dark">0 đ</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3 border-bottom pb-3 align-items-center">
+                            <span class="text-secondary">Số lượng:</span>
+                            <div class="input-group" style="width: 120px;">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-minus">-</button>
+                                <input type="number" class="form-control form-control-sm text-center fw-bold" id="bill-quantity" name="quantity" value="1" min="1" max="10" readonly>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-plus">+</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-4 mt-4">
+                            <span class="fw-bold fs-5">Tổng tiền:</span>
+                            <strong id="bill-total" class="text-danger fs-4">0 đ</strong>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 fw-bold py-3 fs-5" id="btn-buy" disabled style="border-radius: 8px;">
+                            Thanh toán ngay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
 {% endblock %}
