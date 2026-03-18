@@ -29,7 +29,7 @@ class CardType(PyEnum):
 
 class User(BaseModel, UserMixin):
     name = Column(String(50), nullable=False)
-    avatar = Column(String(255), default='https://res.cloudinary.com/dfgicbdji/image/upload/v1773807215/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration_tjibsq.jpg')
+    avatar = Column(String(255), default='https://res.cloudinary.com/default_avatar.jpg')
     username = Column(String(50), nullable=False, unique=True)
 
     email = Column(String(100), nullable=False, unique=True)
@@ -49,12 +49,9 @@ class Category(BaseModel):
 
 class Product(BaseModel):
     name = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
-    price = Column(Float, default=0)  #
-    image = Column(String(255), nullable=True)
-
+    price = Column(Float, default=0)
+    inventory = Column(Integer, default=0)
     category_id = Column(Integer, ForeignKey(Category.id), nullable=False)
-
     cards = relationship('Card', backref='product', lazy=True)
     details = relationship('ReceiptDetails', backref='product', lazy=True)
 
@@ -111,18 +108,19 @@ if __name__ == '__main__':
         db.create_all()
 
         import hashlib
+        import random
         import uuid
         from datetime import datetime, timedelta
 
         admin = User(name='Admin', username='admin',
                      email='donguyen6c@gmail.com',
                      password=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
-                     user_role=UserRole.ADMIN)
+                     user_role=UserRole.ADMIN ,avatar='https://res.cloudinary.com/dfgicbdji/image/upload/v1773807215/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration_tjibsq.jpg')
 
         test_user = User(name='Khách hàng', username='user',
                          email='doly2301a@gmail.com',
                          password=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
-                         user_role=UserRole.USER)
+                         user_role=UserRole.USER ,avatar='https://res.cloudinary.com/dfgicbdji/image/upload/v1773821619/vector-flat-illustration-grayscale-avatar-260nw-2628520697_j4ch5h.jpg')
 
         db.session.add_all([admin, test_user])
         db.session.commit()
@@ -139,16 +137,20 @@ if __name__ == '__main__':
         cat_zing = Category(name='Zing', card_type=CardType.GAME,
                             image='https://res.cloudinary.com/dfgicbdji/image/upload/v1773654323/zing_gkfb9w.png')
 
-
         db.session.add_all([cat_viettel, cat_mobi, cat_vina, cat_garena, cat_zing])
         db.session.commit()
 
         products_data = [
             {"name": "Thẻ Viettel 10k", "price": 10000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 20k", "price": 20000, "cat": cat_viettel},
+            {"name": "Thẻ Viettel 30k", "price": 30000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 50k", "price": 50000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 100k", "price": 100000, "cat": cat_viettel},
+            {"name": "Thẻ Viettel 200k", "price": 200000, "cat": cat_viettel},
+            {"name": "Thẻ Viettel 300k", "price": 300000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 500k", "price": 500000, "cat": cat_viettel},
+            {"name": "Thẻ Viettel 1000k", "price": 1000000, "cat": cat_viettel},
+            {"name": "Thẻ Viettel 2000k", "price": 2000000, "cat": cat_viettel},
 
             {"name": "Thẻ Mobifone 50k", "price": 50000, "cat": cat_mobi},
             {"name": "Thẻ Mobifone 100k", "price": 100000, "cat": cat_mobi},
@@ -168,28 +170,20 @@ if __name__ == '__main__':
 
         product_objs = []
         for p in products_data:
-            pro = Product(name=p["name"], price=p["price"], category_id=p["cat"].id)
+            pro = Product(name=p["name"], price=p["price"], category_id=p["cat"].id, inventory=random.randint(5, 20))
             db.session.add(pro)
             product_objs.append(pro)
 
         db.session.commit()
 
         expiry_date_future = datetime.now() + timedelta(days=365)
-
         for pro in product_objs:
             for i in range(5):
                 serial = f"{pro.category.name[:3].upper()}-{uuid.uuid4().hex[:8].upper()}"
                 pin = f"PIN{uuid.uuid4().hex[:12].upper()}"
-
-                card = Card(
-                    serial_number=serial,
-                    pin_code=pin,
-                    expiry_date=expiry_date_future,
-                    is_sold=False,
-                    product_id=pro.id
-                )
+                card = Card(serial_number=serial, pin_code=pin, expiry_date=expiry_date_future,
+                            is_sold=False, product_id=pro.id)
                 db.session.add(card)
-
         db.session.commit()
 
         discount1 = Discount(

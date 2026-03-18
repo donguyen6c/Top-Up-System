@@ -1,29 +1,73 @@
 {% extends 'layout/base.html' %}
 
 {% block title %}Trang chủ - Hệ thống bán thẻ cào{% endblock %}
-
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
     <div class="row">
+        <section class="banner-section text-white mb-4">
+            <div id="bannerCarousel" class="carousel slide mb-4 shadow-sm" data-bs-ride="carousel" style="border-radius: 8px; overflow: hidden;">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img height="500" src="https://static.vecteezy.com/system/resources/thumbnails/003/692/287/small/big-sale-discount-promotion-banner-template-with-blank-product-podium-scene-graphic-free-vector.jpg" class="d-block w-100" alt="Banner 1" style="object-fit: cover;">
+                    </div>
+                    <div class="carousel-item">
+                        <img height="500" src="https://www.shutterstock.com/image-vector/mega-sale-banner-promotion-template-600nw-2653405981.jpg" class="d-block w-100" alt="Banner 2" style="object-fit: cover;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4 bg-light">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-7 col-12 mb-3 mb-md-0">
+                            <h6 class="fw-bold mb-3 text-primary">Quy định hạn mức mới</h6>
+                            <div class="row text-secondary">
+                                <div class="col-md-6 col-12 mb-2">
+                                    <span class="badge bg-primary me-2">LÊN TỚI 10</span> 10K 20K 30K: 10 thẻ / đơn
+                                </div>
+                                <div class="col-md-6 col-12 mb-2">
+                                    <span class="badge bg-warning me-2">LÊN TỚI 5</span> 50K 100K 200K 300K: 5 thẻ / đơn
+                                </div>
+                                <div class="col-md-6 col-12 mb-2">
+                                    <span class="badge bg-danger me-2">LÊN TỚI 3</span> 500K 1 triệu, 2 triệu ....: 3 thẻ / đơn
+                                </div>
+                                <div class="col-md-6 col-12 mb-2">
+                                    <i class="small text-muted">* Chỉ tính theo đơn, không giới hạn số lần mua</i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5 col-12 border-start-md ps-md-4">
+                            <p class="fw-bold mb-3 text-dark">Vì sao cần giới hạn theo mệnh giá?</p>
+                            <ul class="list-unstyled text-secondary small">
+                                <li class="mb-2">✅ Đảm bảo an toàn tài khoản & hệ thống</li>
+                                <li class="mb-2">✅ Hạn chế rủi ro gian lận</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <div class="col-lg-8">
             <div class="card shadow-sm border-0">
-
                 <div class="card-header bg-white p-0 border-bottom">
                     <ul class="nav nav-tabs nav-fill" id="main-tabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active fw-bold py-3 text-uppercase text-dark"
                                     id="tab-main-phone" data-bs-toggle="tab" data-bs-target="#section-phone"
-                                    type="button" role="tab">
-                                Mua thẻ điện thoại
-                            </button>
+                                    type="button" role="tab">Mua thẻ điện thoại</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link fw-bold py-3 text-uppercase text-dark"
                                     id="tab-main-game" data-bs-toggle="tab" data-bs-target="#section-game"
-                                    type="button" role="tab">
-                                Mua thẻ game
-                            </button>
+                                    type="button" role="tab">Mua thẻ game</button>
                         </li>
                     </ul>
                 </div>
@@ -32,7 +76,6 @@
                     <div class="tab-content" id="main-tabsContent">
 
                         <div class="tab-pane fade show active" id="section-phone" role="tabpanel">
-
                             <h6 class="fw-bold mb-3">Chọn nhà cung cấp</h6>
                             <ul class="nav nav-pills mb-4" id="phone-provider-tabs" role="tablist">
                                 {% for c in phone_categories %}
@@ -40,8 +83,7 @@
                                     <button class="nav-link {% if loop.first %}active{% endif %} p-1 border"
                                             id="tab-phone-{{ c.id }}" data-bs-toggle="pill" data-bs-target="#content-phone-{{ c.id }}"
                                             type="button" role="tab" style="border-radius: 8px;">
-                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}"
-                                             alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
+                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}" alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
                                     </button>
                                 </li>
                                 {% endfor %}
@@ -54,13 +96,19 @@
                                     <div class="row g-3">
                                         {% for p in products if p.category_id == c.id %}
                                         <div class="col-lg-3 col-md-4 col-sm-6 col-6">
-                                            <button class="btn btn-outline-primary w-100 py-2 fw-bold product-btn"
+                                            <button class="btn w-100 py-2 fw-bold product-btn {% if p.inventory > 0 %}btn-outline-primary{% else %}btn-outline-secondary disabled{% endif %}"
+                                                    {% if p.inventory <= 0 %}disabled{% endif %}
                                                     data-id="{{ p.id }}"
                                                     data-name="{{ p.name }}"
                                                     data-price="{{ p.price }}"
                                                     data-carrier="{{ c.name }}"
-                                                    style="border-radius: 8px;">
+                                                    data-inventory="{{ p.inventory }}"
+                                                    style="border-radius: 8px; position: relative;">
                                                 {{ "{:,.0f}".format(p.price) }} đ
+
+                                                {% if p.inventory <= 0 %}
+                                                <div class="small text-danger" style="font-size: 0.75rem; font-weight: normal;">(Hết hàng)</div>
+                                                {% endif %}
                                             </button>
                                         </div>
                                         {% endfor %}
@@ -68,11 +116,9 @@
                                 </div>
                                 {% endfor %}
                             </div>
-
                         </div>
 
                         <div class="tab-pane fade" id="section-game" role="tabpanel">
-
                             <h6 class="fw-bold mb-3">Chọn nhà cung cấp</h6>
                             <ul class="nav nav-pills mb-4" id="game-provider-tabs" role="tablist">
                                 {% for c in game_categories %}
@@ -80,8 +126,7 @@
                                     <button class="nav-link {% if loop.first %}active{% endif %} p-1 border"
                                             id="tab-game-{{ c.id }}" data-bs-toggle="pill" data-bs-target="#content-game-{{ c.id }}"
                                             type="button" role="tab" style="border-radius: 8px;">
-                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}"
-                                             alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
+                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}" alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
                                     </button>
                                 </li>
                                 {% endfor %}
@@ -94,13 +139,19 @@
                                     <div class="row g-3">
                                         {% for p in products if p.category_id == c.id %}
                                         <div class="col-lg-3 col-md-4 col-sm-6 col-6">
-                                            <button class="btn btn-outline-success w-100 py-2 fw-bold product-btn"
+                                             <button class="btn w-100 py-2 fw-bold product-btn {% if p.inventory > 0 %}btn-outline-success{% else %}btn-outline-secondary disabled{% endif %}"
+                                                    {% if p.inventory <= 0 %}disabled{% endif %}
                                                     data-id="{{ p.id }}"
                                                     data-name="{{ p.name }}"
                                                     data-price="{{ p.price }}"
                                                     data-carrier="{{ c.name }}"
+                                                    data-inventory="{{ p.inventory }}"
                                                     style="border-radius: 8px;">
                                                 {{ "{:,.0f}".format(p.price) }} đ
+
+                                                {% if p.inventory <= 0 %}
+                                                <div class="small text-danger" style="font-size: 0.75rem; font-weight: normal;">(Hết hàng)</div>
+                                                {% endif %}
                                             </button>
                                         </div>
                                         {% endfor %}
@@ -108,7 +159,6 @@
                                 </div>
                                 {% endfor %}
                             </div>
-
                         </div>
 
                     </div>
@@ -139,7 +189,7 @@
                             <span class="text-secondary">Số lượng:</span>
                             <div class="input-group" style="width: 120px;">
                                 <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-minus">-</button>
-                                <input type="number" class="form-control form-control-sm text-center fw-bold" id="bill-quantity" name="quantity" value="1" min="1" max="10" readonly>
+                                <input type="number" class="form-control form-control-sm text-center fw-bold" id="bill-quantity" name="quantity" value="1" min="1" readonly>
                                 <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-plus">+</button>
                             </div>
                         </div>
@@ -161,5 +211,4 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-
 {% endblock %}

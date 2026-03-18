@@ -1,0 +1,48 @@
+/* 1. Hiệu ứng cho nút Mệnh giá (Product Button) khi được chọn */
+.product-btn.active {
+    background-color: rgba(220, 53, 69, 0.1) !important; /* Nền đỏ trong suốt 10% */
+    border: 2px solid #dc3545 !important;               /* Viền đỏ dày 2px */
+    color: #dc3545 !important;                          /* Chữ màu đỏ */
+    font-weight: 800 !important;                        /* In đậm chữ */
+    border-radius: 8px !important;
+}
+
+/* XỬ LÝ VIỀN XANH: Khi click hoặc nhấn giữ nút */
+.product-btn:focus,
+.product-btn.active:focus,
+.nav-pills .nav-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.1) !important;
+    outline: none !important;
+    border-color: #dc3545 !important;
+}
+
+/* 2. Hiệu ứng khi di chuột qua (Hover) */
+.product-btn:hover {
+    background-color: rgba(220, 53, 69, 0.05);
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* 3. Hiệu ứng cho Tab nhà mạng khi Active */
+.nav-pills .nav-link.active {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important; /* Đảm bảo chữ cũng màu đỏ */
+    font-weight: bold !important;
+}
+
+/* 4. Tùy chỉnh Banner */
+.banner-section .carousel-item img {
+    border-radius: 8px;
+}
+
+/* 5. Định dạng lại bảng quy định hạn mức */
+.border-start-md {
+    border-left: 1px solid #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .border-start-md {
+        border-left: none;
+    }
+}

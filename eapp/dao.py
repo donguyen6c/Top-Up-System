@@ -36,9 +36,9 @@ def auth_user(username, password):
     return User.query.filter(User.username==username,
                              User.password==password).first()
 
-def add_user(name, username, password, avatar):
+def add_user(name, username, password, avatar, email):
     password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
-    u = User(name=name.strip(), username=username.strip(), password=password)
+    u = User(name=name.strip(), username=username.strip(), password=password, email=email)
     if avatar:
         res = cloudinary.uploader.upload(avatar)
         u.avatar = res.get("secure_url")
