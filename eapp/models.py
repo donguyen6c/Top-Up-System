@@ -79,7 +79,8 @@ class Discount(BaseModel):
 
     min_quantity = Column(Integer, default=1)
     max_quantity = Column(Integer, nullable=True)
-
+    usage_limit = db.Column(db.Integer, default=1)
+    used_count = db.Column(db.Integer, default=0)
     receipts = relationship('Receipt', backref='discount_applied', lazy=True)
 
 
@@ -143,11 +144,9 @@ if __name__ == '__main__':
         products_data = [
             {"name": "Thẻ Viettel 10k", "price": 10000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 20k", "price": 20000, "cat": cat_viettel},
-            {"name": "Thẻ Viettel 30k", "price": 30000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 50k", "price": 50000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 100k", "price": 100000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 200k", "price": 200000, "cat": cat_viettel},
-            {"name": "Thẻ Viettel 300k", "price": 300000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 500k", "price": 500000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 1000k", "price": 1000000, "cat": cat_viettel},
             {"name": "Thẻ Viettel 2000k", "price": 2000000, "cat": cat_viettel},

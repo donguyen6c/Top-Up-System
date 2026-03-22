@@ -19,10 +19,20 @@ function resetPaymentInfo() {
     const formProductId = document.getElementById('form-product-id');
     if (formProductId) formProductId.value = "";
 
-    const btnBuy = document.getElementById('btn-buy');
-    if (btnBuy) btnBuy.disabled = true;
+}
 
-    document.querySelectorAll('.product-btn').forEach(btn => btn.classList.remove('active'));
+// MANG SỰ KIỆN CLICK NÚT MUA RA NGOÀI HÀM
+const btnBuy = document.getElementById('btn-buy');
+if (btnBuy) {
+    btnBuy.addEventListener('click', function() {
+        const id = document.getElementById('form-product-id').value;
+        const name = document.getElementById('form-product-name').value;
+        const type = document.getElementById('form-card-type').value;
+        const qty = parseInt(document.getElementById('bill-quantity').value);
+
+        // Gọi hàm addToCart: truyền đủ 5 tham số
+        addToCart(id, name, currentPrice, type, qty);
+    });
 }
 
 const categoryTabs = document.querySelectorAll('.nav-pills .nav-link');
@@ -48,19 +58,25 @@ function updateTotal() {
 const productBtns = document.querySelectorAll('.product-btn');
 productBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-        if (this.hasAttribute('disabled')) return; // Chặn nhấp nếu hết hàng
+        if (this.hasAttribute('disabled')) return;
 
         productBtns.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
 
         const id = this.getAttribute('data-id');
+        const name = this.getAttribute('data-name');
+        const cardType = this.getAttribute('data-type');
         const carrier = this.getAttribute('data-carrier');
+
         currentPrice = parseInt(this.getAttribute('data-price'));
-        currentInventory = parseInt(this.getAttribute('data-inventory')); // Lấy tồn kho
+        currentInventory = parseInt(this.getAttribute('data-inventory'));
 
         document.getElementById('bill-carrier').innerText = carrier;
         document.getElementById('bill-price').innerText = formatCurrency(currentPrice);
+
         document.getElementById('form-product-id').value = id;
+        document.getElementById('form-product-name').value = name;
+        document.getElementById('form-card-type').value = cardType;
 
         const qtyInput = document.getElementById('bill-quantity');
         qtyInput.value = 1; // Luôn reset về 1 khi chọn mệnh giá mới
@@ -122,13 +138,14 @@ if (btnPlus && btnMinus) {
     });
 }
 
-function addToCart(id, name, price, quantity = 1) {
+function addToCart(id, name, price, cardType, quantity = 1) {
     fetch("/api/carts", {
         method: "post",
         body: JSON.stringify({
             "id": id,
             "name": name,
             "price": price,
+            "card_type": cardType, // Truyền loại thẻ lên API
             "quantity": quantity
         }),
         headers: {

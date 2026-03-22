@@ -6,49 +6,66 @@
 
 <h1 class="text-success text-center mt-2">GIỎ HÀNG</h1>
 
-{% if 'cart' in session %}
+{% if 'cart' in session and session['cart'] %}
   <table class="table">
-    <tr>
-      <th>Id</th>
-      <th>Tên sản phẩm</th>
-      <th>Giá sản phẩm</th>
-      <th>Số lượng</th>
-      <th></th>
-    </tr>
-    {% for c in session['cart'].values() %}
-    <tr id="cart{{ c.id }}">
-      <td>{{ c.id }}</td>
-      <td>{{ c.name }}</td>
-      <td>{{ "{:,.0f}".format(c.price) }} VNĐ</td>
-      <td>
-        <input type="number" value="{{ c.quantity }}" class="form-control" onblur="updateCart({{ c.id }}, this)" />
-      </td>
-      <td>
-        <button class="btn btn-danger" onclick="deleteCart({{ c.id }})">&times;</button>
-      </td>
-    </tr>
-    {% endfor %}
+    <thead class="table-light">
+      <tr>
+        <th>Id</th>
+        <th>Tên sản phẩm</th>
+        <th>Giá sản phẩm</th>
+        <th>Số lượng</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in session['cart'].values() %}
+      <tr id="cart{{ c.id }}">
+        <td>{{ c.id }}</td>
+        <td>{{ c.name }}</td>
+        <td>{{ "{:,.0f}".format(c.price) }} VNĐ</td>
+        <td>
+          <div class="input-group input-group-sm" style="width: 130px;">
+            <button class="btn btn-outline-secondary fw-bold" type="button"
+                    onclick="changeQuantity('{{ c.id }}', -1, {{ c.price }})">−</button>
+
+            <input type="number" id="qty-{{ c.id }}" value="{{ c.quantity }}"
+                   class="form-control text-center fw-bold" readonly />
+
+            <button class="btn btn-outline-secondary fw-bold" type="button"
+                    onclick="changeQuantity('{{ c.id }}', 1, {{ c.price }})">+</button>
+          </div>
+        </td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="deleteCart({{ c.id }})">&times;</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
 
-<div class="alert alert-info">
-  <h3>Tổng tiền: <span class="cart-amount">{{ "{:,.0f}".format(cart_stats.total_amount) }}</span> VNĐ</h3>
-  <h3>Tổng số lượng: <span class="cart-counter">{{ cart_stats.total_quantity }}</span></h3>
-</div>
+  <div class="alert alert-info d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-1">Tổng số lượng thẻ: <strong class="cart-counter">{{ cart_stats.total_quantity }}</strong></h5>
+      <h4 class="mb-0">Tạm tính: <strong class="cart-amount text-danger">{{ "{:,.0f}".format(cart_stats.total_amount) }}</strong> VNĐ</h4>
+    </div>
+  </div>
 
-{% if current_user.is_authenticated %}
-<div class="mt-1 mb-1">
-  <button class="btn btn-success" onclick="pay()">Thanh toán</button>
-</div>
+  {% if current_user.is_authenticated %}
+  <div class="text-end mt-3 mb-5">
+    <a href="/checkout" class="btn btn-success btn-lg px-5 fw-bold">TIẾP TỤC THANH TOÁN</a>
+  </div>
+  {% else %}
+  <div class="alert alert-warning mt-3 text-center">
+    Vui lòng <a href="/login?next=/cart" class="fw-bold">đăng nhập</a> để tiếp tục thanh toán!
+  </div>
+  {% endif %}
+
 {% else %}
-<div class="mt-1 mb-1">
-  Vui lòng <a href="/login?next=/cart">đăng nhập</a> để thanh toán!
-</div>
+  <div class="alert alert-warning mt-4 text-center">
+    Không có sản phẩm trong giỏ hoặc giỏ đã thanh toán! <br>
+    <a href="/" class="btn btn-primary mt-2">Quay lại mua hàng</a>
+  </div>
 {% endif %}
 
-{% else %}
-<div class="alert alert-warning mt-2">
-  Không có sản phẩm trong giỏ hoăc giỏ đã thanh toán!
-</div>
-{% endif %}
-
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 {% endblock %}

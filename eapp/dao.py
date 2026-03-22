@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
-from eapp.models import Category, Product, User, Receipt, ReceiptDetails, Discount, Card
+from eapp.models import Category, Product, User, Receipt, ReceiptDetails, Discount, Card, DiscountType
 import hashlib
-from eapp import app, db
+from eapp import app, db, utils
 import cloudinary.uploader
 from flask_login import current_user
 from sqlalchemy import func
@@ -58,7 +58,7 @@ def count_product_by_cate():
             .filter(Card.is_sold == False)
             .group_by(Category.id).all())
 
-def add_receipt(cart, discount_code=None):
+def add_receipt(user_id, cart, discount_code=None):
     if not cart:
         raise Exception("Giỏ hàng đang trống!")
 
@@ -68,7 +68,7 @@ def add_receipt(cart, discount_code=None):
     discount_id = None
 
     if discount_code:
-        discount_result = check_and_apply_discount(discount_code, cart)
+        discount_result = check_discount(discount_code, cart)
         if discount_result['success']:
             final_amount = total_amount - discount_result['discount_amount']
             discount_id = discount_result['discount_id']
@@ -76,7 +76,7 @@ def add_receipt(cart, discount_code=None):
             raise Exception(discount_result['message'])
 
     r = Receipt(
-        user_id=current_user.id,
+        user_id=user_id,
         total_amount=total_amount,
         final_amount=final_amount,
         discount_id=discount_id
@@ -104,6 +104,12 @@ def add_receipt(cart, discount_code=None):
         for card in available_cards:
             card.is_sold = True
             card.sold_receipt = r
+
+    if discount_id:
+        discount_obj = Discount.query.get(discount_id)
+        if discount_obj:
+            discount_obj.used_count += 1
+
     try:
         db.session.commit()
         return True
@@ -112,43 +118,75 @@ def add_receipt(cart, discount_code=None):
         raise Exception("Có lỗi xảy ra trong quá trình ghi nhận đơn hàng!")
 
 
-def check_and_apply_discount(code_input, cart):
+def check_discount(code, cart):
+    fail_res = {'success': False, 'discount_amount': 0, 'message': "", 'discount_id': None}
+
     if not cart:
-        return {"success": False, "message": "Giỏ hàng trống!"}
+        fail_res['message'] = "Giỏ hàng rỗng!"
+        return fail_res
 
-    discount = Discount.query.filter_by(code=code_input).first()
+    discount = Discount.query.filter(Discount.code == code, Discount.active == True).first()
     if not discount:
-        return {"success": False, "message": "Mã giảm giá không tồn tại!"}
+        fail_res['message'] = "Mã giảm giá không tồn tại!"
+        return fail_res
 
-    if discount.end_date < datetime.now():
-        return {"success": False, "message": "Mã giảm giá đã hết hạn!"}
+    if discount.usage_limit is not None:
+        if discount.used_count >= discount.usage_limit:
+            fail_res['message'] = f"Mã này đã hết lượt sử dụng (Giới hạn: {discount.usage_limit} lần)!"
+            return fail_res
 
-    eligible_items = []
-    for item in cart.values():
-        if discount.applied_card_type is None or item.get('card_type') == discount.applied_card_type.value:
-            for _ in range(item['quantity']):
-                eligible_items.append(item['price'])
+    now = datetime.now()
+    if now < discount.start_date or now > discount.end_date:
+        fail_res['message'] = "Mã giảm giá đã hết hạn!"
+        return fail_res
 
-    if len(eligible_items) < discount.min_quantity:
-        return {"success": False, "message": f"Cần mua ít nhất {discount.min_quantity} thẻ hợp lệ để áp dụng mã!"}
+    stats = utils.stats_cart(cart)
+    applicable_qty = 0
+    applicable_amount = 0
 
-    eligible_items.sort(reverse=True)
+    if discount.applied_card_type:
+        target_type = discount.applied_card_type.value if hasattr(discount.applied_card_type, 'value') else str(
+            discount.applied_card_type)
+        target_type = str(target_type).lower()
 
-    warning_msg = ""
-    if discount.max_quantity and len(eligible_items) > discount.max_quantity:
-        applied_items = eligible_items[:discount.max_quantity]
-        warning_msg = f"Lưu ý: Mã chỉ giảm giá cho {discount.max_quantity} thẻ có mệnh giá cao nhất. Các thẻ còn lại tính giá gốc."
+        if 'phone' in target_type:
+            target_type = 'phone'
+        elif 'game' in target_type:
+            target_type = 'game'
+
+        if target_type == 'game':
+            applicable_qty = stats.get('game_quantity', 0)
+            applicable_amount = sum([c['price'] * c['quantity'] for c in cart.values() if c.get('card_type') == 'game'])
+        elif target_type == 'phone':
+            applicable_qty = stats.get('phone_quantity', 0)
+            applicable_amount = sum(
+                [c['price'] * c['quantity'] for c in cart.values() if c.get('card_type') == 'phone'])
+
+        if applicable_qty == 0:
+            fail_res['message'] = f"Mã này chỉ áp dụng cho thẻ {target_type.upper()}!"
+            return fail_res
     else:
-        applied_items = eligible_items
+        applicable_qty = stats.get('total_quantity', 0)
+        applicable_amount = stats.get('total_amount', 0)
 
-    if discount.discount_type.value == 1:
-        discount_amount = sum(applied_items) * (discount.value / 100)
+    if applicable_qty < discount.min_quantity:
+        fail_res['message'] = f"Cần mua ít nhất {discount.min_quantity} thẻ để áp dụng mã!"
+        return fail_res
+
+    if discount.max_quantity and applicable_qty > discount.max_quantity:
+        fail_res['message'] = f"Mã này chỉ áp dụng khi mua tối đa {discount.max_quantity} thẻ!"
+        return fail_res
+
+    if discount.discount_type == DiscountType.PERCENTAGE:
+        discount_amount = applicable_amount * (discount.value / 100)
     else:
         discount_amount = discount.value
 
+    discount_amount = min(discount_amount, applicable_amount)
+
     return {
-        "success": True,
-        "discount_amount": discount_amount,
-        "message": warning_msg if warning_msg else "Áp dụng mã thành công!",
-        "discount_id": discount.id
+        'success': True,
+        'discount_amount': discount_amount,
+        'message': "Áp dụng mã giảm giá thành công!",
+        'discount_id': discount.id
     }

@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Thanh toán{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <h1 class="text-success text-center mb-4">XÁC NHẬN THANH TOÁN</h1>
+
+    {% if 'cart' in session and session['cart'] %}
+    <div class="row">
+        <div class="col-md-6 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white fw-bold fs-5">Phương thức thanh toán</div>
+        <div class="card-body">
+            <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;">
+                <input class="form-check-input ms-1" type="radio" name="payment_method" id="pay-momo" value="momo" checked>
+                <label class="form-check-label ms-3 w-100" for="pay-momo" style="cursor: pointer;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZcQPC-zWVyFOu9J2OGl0j2D220D49D0Z7BQ&s" alt="MoMo" width="30" class="me-2"> Ví điện tử MoMo
+                </label>
+            </div>
+            <div class="form-check p-3 border rounded" style="cursor: pointer;">
+                <input class="form-check-input ms-1" type="radio" name="payment_method" id="pay-banking" value="banking">
+                <label class="form-check-label ms-3 w-100" for="pay-banking" style="cursor: pointer;">
+                    <img src="https://www.clipartmax.com/png/middle/258-2583618_bank-clipart-bangunan-digital-bank-icon-png.png" alt="Banking" width="30" class="me-2"> Chuyển khoản Ngân hàng
+                </label>
+            </div>
+
+            <div class="text-center mt-4 p-3 border rounded bg-light" id="qr-container">
+                <h6 class="fw-bold text-secondary mb-3">Quét mã QR để thanh toán</h6>
+
+                <img src="https://res.cloudinary.com/dfgicbdji/image/upload/v1774008137/momo-0336191540-compact_cofrzw.png"
+                     alt="Momo QR" id="qr-momo" class="img-fluid shadow-sm" style="max-height: 300px; border-radius: 10px;">
+
+                <img src="https://res.cloudinary.com/dfgicbdji/image/upload/v1774008111/MB-0915490362-compact_luwgjc.png"
+                     alt="Banking QR" id="qr-banking" class="img-fluid shadow-sm d-none" style="max-height: 300px; border-radius: 10px;">
+
+                <div class="mt-2 small text-muted">Nội dung CK: <strong class="text-danger">Tên tài khoản + SĐT</strong></div>
+            </div>
+            </div>
+    </div>
+</div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold fs-5">Thông tin đơn hàng</div>
+                <div class="card-body">
+                    <label class="fw-bold mb-2">Mã ưu đãi</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="discount-code" class="form-control" placeholder="Nhập mã (nếu có)...">
+                        <button class="btn btn-outline-primary" type="button" onclick="applyDiscount()">Áp dụng</button>
+                    </div>
+                    <div id="discount-msg" class="small fw-bold mb-4"></div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Tổng số lượng thẻ:</span>
+                        <strong>{{ cart_stats.total_quantity }} thẻ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Tạm tính:</span>
+                        <span><strong id="subtotal">{{ "{:,.0f}".format(cart_stats.total_amount) }}</strong> VNĐ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 text-success">
+                        <span>Giảm giá:</span>
+                        <span>- <strong id="discount-amount">0</strong> VNĐ</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Thành tiền:</h4>
+                        <h3 class="mb-0 text-danger"><strong id="final-amount">{{ "{:,.0f}".format(cart_stats.total_amount) }}</strong> VNĐ</h3>
+                    </div>
+
+                    <button class="btn btn-danger w-100 btn-lg mt-4 fw-bold" onclick="pay()">XÁC NHẬN MUA</button>
+                    <a href="/cart" class="btn btn-link w-100 mt-2 text-decoration-none text-secondary">Quay lại giỏ hàng</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        Giỏ hàng của bạn đang trống! <a href="/">Mua hàng ngay</a>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+{% endblock %}
