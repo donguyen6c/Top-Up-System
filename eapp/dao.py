@@ -190,3 +190,9 @@ def check_discount(code, cart):
         'message': "Áp dụng mã giảm giá thành công!",
         'discount_id': discount.id
     }
+
+def get_receipts_by_user(user_id):
+    return Receipt.query.filter(Receipt.user_id == user_id).order_by(Receipt.created_date.desc()).all()
+
+def get_cards_by_user(user_id):
+    return Card.query.join(Receipt, Card.receipt_id == Receipt.id).filter(Receipt.user_id == user_id, Card.is_sold == True).order_by(Receipt.created_date.desc()).all()

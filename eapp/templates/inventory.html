@@ -1,0 +1,54 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Kho thẻ của tôi - Hệ thống bán thẻ cào{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+
+            <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                <div class="card-body p-0">
+                    {% if cards and cards|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-secondary">
+                                <tr>
+                                    <th class="ps-4 py-3">Sản phẩm</th>
+                                    <th class="py-3">Số Serial</th>
+                                    <th class="py-3">Mã PIN</th>
+                                    <th class="py-3">Hạn sử dụng</th>
+                                    <th class="py-3">Ngày mua</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for card in cards %}
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="fw-bold text-primary">{{ card.product.name }}</div>
+                                        <small class="text-muted">{{ card.product.category.name }}</small>
+                                    </td>
+                                    <td class="py-3 font-monospace">{{ card.serial_number }}</td>
+                                    <td class="py-3">
+                                        <span class="badge bg-success fs-6 font-monospace p-2">{{ card.pin_code }}</span>
+                                    </td>
+                                    <td class="py-3 text-danger">{{ card.expiry_date.strftime('%d/%m/%Y') }}</td>
+                                    <td class="py-3 text-muted">{{ card.sold_receipt.created_date.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-wallet2 display-1"></i>
+                        <p class="mt-3 fs-5">Kho thẻ của bạn đang trống.</p>
+                        <a href="/" class="btn btn-primary mt-2" style="border-radius: 8px;">Mua thẻ ngay</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

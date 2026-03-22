@@ -191,7 +191,6 @@ def update_to_cart(id):
 
     return jsonify({"status": "error", "message": "Sản phẩm không tồn tại trong giỏ"}), 404
 
-
 @app.route('/api/carts/<id>', methods=['delete'])
 def delete_to_cart(id):
     cart = session.get('cart')
@@ -207,7 +206,6 @@ def delete_to_cart(id):
         "total_amount": stats['total_amount']
     })
 
-# CHECKOUT PAGE
 @app.route('/checkout')
 def checkout_view():
     if not current_user.is_authenticated:
@@ -226,6 +224,9 @@ def checkout_view():
 
 @app.route('/api/apply-discount', methods=['POST'])
 def apply_discount_api():
+    if not current_user.is_authenticated:
+        return jsonify({"status": "error", "message": "Bạn chưa đăng nhập!"}), 401
+
     code = request.json.get('code')
     cart = session.get('cart', {})
 
@@ -295,6 +296,34 @@ def pay_process():
     except Exception as ex:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(ex)}), 500
+
+
+@app.route('/history')
+def history_view():
+    if not current_user.is_authenticated:
+        return redirect('/login?next=/history')
+
+    receipts = dao.get_receipts_by_user(current_user.id)
+
+    return render_template('history.html', receipts=receipts)
+
+
+@app.route('/inventory')
+def inventory_view():
+    if not current_user.is_authenticated:
+        return redirect('/login?next=/inventory')
+
+    cards = dao.get_cards_by_user(current_user.id)
+
+    return render_template('inventory.html', cards=cards)
+
+@app.context_processor
+def common_response():
+    cart = session.get('cart', {})
+    cart_stats = utils.stats_cart(cart)
+    return {
+        'cart_stats': cart_stats
+    }
 
 @login.user_loader
 def load_user(id):

@@ -1,0 +1,72 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Lịch sử giao dịch - Hệ thống bán thẻ cào{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h4 class="fw-bold mb-4 text-uppercase text-dark">Lịch sử giao dịch</h4>
+
+            <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                <div class="card-body p-4">
+                    {% if receipts and receipts|length > 0 %}
+                    <div class="accordion" id="historyAccordion">
+                        {% for r in receipts %}
+                        <div class="accordion-item mb-3 border" style="border-radius: 8px; overflow: hidden;">
+                            <h2 class="accordion-header" id="heading-{{ r.id }}">
+                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ r.id }}" aria-expanded="false" aria-controls="collapse-{{ r.id }}">
+                                    <div class="d-flex justify-content-between w-100 me-3">
+                                        <div>
+                                            <strong>Mã đơn: #{{ r.id }}</strong>
+                                            <span class="text-muted ms-2 small"><i class="bi bi-clock"></i> {{ r.created_date.strftime('%d/%m/%Y %H:%M') }}</span>
+                                        </div>
+                                        <div class="text-danger fw-bold">
+                                            - {{ "{:,.0f}".format(r.final_amount) }} đ
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse-{{ r.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ r.id }}" data-bs-parent="#historyAccordion">
+                                <div class="accordion-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-secondary">Tổng tiền ban đầu:</div>
+                                        <div class="col-6 text-end">{{ "{:,.0f}".format(r.total_amount) }} đ</div>
+                                    </div>
+                                    {% if r.discount_id %}
+                                    <div class="row mb-2 text-success">
+                                        <div class="col-6">Mã giảm giá áp dụng:</div>
+                                        <div class="col-6 text-end">- {{ "{:,.0f}".format(r.total_amount - r.final_amount) }} đ</div>
+                                    </div>
+                                    {% endif %}
+                                    <hr>
+                                    <h6 class="fw-bold">Chi tiết sản phẩm:</h6>
+                                    <table class="table table-sm table-borderless">
+                                        <tbody>
+                                            {% for detail in r.details %}
+                                            <tr>
+                                                <td>{{ detail.product.name }}</td>
+                                                <td class="text-center">x{{ detail.quantity }}</td>
+                                                <td class="text-end">{{ "{:,.0f}".format(detail.unit_price * detail.quantity) }} đ</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-receipt display-1"></i>
+                        <p class="mt-3 fs-5">Bạn chưa có giao dịch nào.</p>
+                        <a href="/" class="btn btn-primary mt-2" style="border-radius: 8px;">Mua thẻ ngay</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
