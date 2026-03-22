@@ -102,6 +102,9 @@ class ReceiptDetails(BaseModel):
     quantity = Column(Integer, default=1)
     unit_price = Column(Float, default=0)
 
+class Banner(BaseModel):
+    title = Column(String(100))
+    image_url = Column(String(255), nullable=False)
 
 if __name__ == '__main__':
     with app.app_context():
@@ -206,6 +209,19 @@ if __name__ == '__main__':
             min_quantity=1,
             max_quantity=3
         )
+
+        banner1 = Banner(
+            title="GGS1",
+            image_url="https://res.cloudinary.com/dfgicbdji/image/upload/v1774192206/GAME_kk4hfj.png"
+        )
+
+        banner2 = Banner(
+            title="PHONE10",
+            image_url="https://res.cloudinary.com/dfgicbdji/image/upload/v1774192067/Promotional_Banner_for_Exclusive_PHONE10_Offer_enbyur.png"
+        )
+
+        db.session.add_all([banner1, banner2])
+        db.session.commit()
 
         db.session.add_all([discount1, discount2])
         db.session.commit()

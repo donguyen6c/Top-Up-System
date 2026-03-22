@@ -14,6 +14,7 @@ from eapp.observers import PaymentSubject, EmailNotificationObserver
 def index():
     categories = dao.load_categories()
     products = dao.load_products()
+    banners = dao.load_banners()
 
     phone_categories = [c for c in categories if c.card_type == CardType.PHONE]
     game_categories = [c for c in categories if c.card_type == CardType.GAME]
@@ -21,7 +22,7 @@ def index():
     return render_template('index.html',
                            phone_categories=phone_categories,
                            game_categories=game_categories,
-                           products=products)
+                           products=products, banners=banners)
 
 @app.route('/login')
 def login_view():
@@ -316,6 +317,11 @@ def inventory_view():
     cards = dao.get_cards_by_user(current_user.id)
 
     return render_template('inventory.html', cards=cards)
+
+@app.route('/promotion')
+def promotion_view():
+    discounts = dao.load_discounts()
+    return render_template('promotion.html', discounts=discounts)
 
 @app.context_processor
 def common_response():

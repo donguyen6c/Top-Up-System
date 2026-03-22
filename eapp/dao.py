@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
-from eapp.models import Category, Product, User, Receipt, ReceiptDetails, Discount, Card, DiscountType
+from eapp.models import Category, Product, User, Receipt, ReceiptDetails, Discount, Card, DiscountType, Banner
 import hashlib
 from eapp import app, db, utils
 import cloudinary.uploader
@@ -13,6 +13,12 @@ from eapp.utils import stats_cart
 
 def load_categories():
     return Category.query.all()
+
+def load_banners():
+    return Banner.query.filter(Banner.active == True).all()
+
+def load_discounts():
+    return Discount.query.filter(Discount.active == True).all()
 
 def load_products(cate_id=None, kw=None, page=1):
     query = Product.query

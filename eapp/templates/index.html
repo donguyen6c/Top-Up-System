@@ -2,24 +2,28 @@
 
 {% block title %}Trang chủ - Hệ thống bán thẻ cào{% endblock %}
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 {% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
     <div class="row">
         <section class="banner-section text-white mb-4">
-            <div id="bannerCarousel" class="carousel slide mb-4 shadow-sm" data-bs-ride="carousel" style="border-radius: 8px; overflow: hidden;">
+            <div id="bannerCarousel" class="carousel slide mb-4 shadow-sm" data-bs-ride="carousel"
+                 style="border-radius: 8px; overflow: hidden;">
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    {% for b in banners %}
+                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="{{ loop.index0 }}"
+                            class="{% if loop.first %}active{% endif %}" aria-label="Slide {{ loop.index }}"></button>
+                    {% endfor %}
                 </div>
+
                 <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img height="500" src="https://static.vecteezy.com/system/resources/thumbnails/003/692/287/small/big-sale-discount-promotion-banner-template-with-blank-product-podium-scene-graphic-free-vector.jpg" class="d-block w-100" alt="Banner 1" style="object-fit: cover;">
+                    {% for b in banners %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img height="500" src="{{ b.image_url }}" alt="{{ b.title }}" title="{{ b.title }}"
+                             class="d-block w-100" style="object-fit: cover;">
                     </div>
-                    <div class="carousel-item">
-                        <img height="500" src="https://www.shutterstock.com/image-vector/mega-sale-banner-promotion-template-600nw-2653405981.jpg" class="d-block w-100" alt="Banner 2" style="object-fit: cover;">
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -62,12 +66,14 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active fw-bold py-3 text-uppercase text-dark"
                                     id="tab-main-phone" data-bs-toggle="tab" data-bs-target="#section-phone"
-                                    type="button" role="tab">Mua thẻ điện thoại</button>
+                                    type="button" role="tab">Mua thẻ điện thoại
+                            </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link fw-bold py-3 text-uppercase text-dark"
                                     id="tab-main-game" data-bs-toggle="tab" data-bs-target="#section-game"
-                                    type="button" role="tab">Mua thẻ game</button>
+                                    type="button" role="tab">Mua thẻ game
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -81,9 +87,12 @@
                                 {% for c in phone_categories %}
                                 <li class="nav-item me-3 mb-2" role="presentation">
                                     <button class="nav-link {% if loop.first %}active{% endif %} p-1 border"
-                                            id="tab-phone-{{ c.id }}" data-bs-toggle="pill" data-bs-target="#content-phone-{{ c.id }}"
+                                            id="tab-phone-{{ c.id }}" data-bs-toggle="pill"
+                                            data-bs-target="#content-phone-{{ c.id }}"
                                             type="button" role="tab" style="border-radius: 8px;">
-                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}" alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
+                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}"
+                                             alt="{{ c.name }}"
+                                             style="height: 45px; width: 100px; object-fit: contain;">
                                     </button>
                                 </li>
                                 {% endfor %}
@@ -92,24 +101,28 @@
                             <h6 class="fw-bold mb-3">Chọn mệnh giá</h6>
                             <div class="tab-content" id="phone-provider-tabsContent">
                                 {% for c in phone_categories %}
-                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="content-phone-{{ c.id }}" role="tabpanel">
+                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
+                                     id="content-phone-{{ c.id }}" role="tabpanel">
                                     <div class="row g-3">
                                         {% for p in products if p.category_id == c.id %}
                                         <div class="col-lg-3 col-md-4 col-sm-6 col-6">
                                             <button class="btn w-100 py-2 fw-bold product-btn {% if p.inventory > 0 %}btn-outline-primary{% else %}btn-outline-secondary disabled{% endif %}"
-                                                    {% if p.inventory <= 0 %}disabled{% endif %}
-                                                    data-id="{{ p.id }}"
-                                                    data-name="{{ p.name }}"
-                                                    data-price="{{ p.price }}"
-                                                    data-carrier="{{ c.name }}"
-                                                    data-inventory="{{ p.inventory }}"
-                                                    data-type="phone"
-                                                    style="border-radius: 8px; position: relative;">
-                                                {{ "{:,.0f}".format(p.price) }} đ
+                                                    {% if p.inventory
+                                            <= 0 %}disabled{% endif %}
+                                            data-id="{{ p.id }}"
+                                            data-name="{{ p.name }}"
+                                            data-price="{{ p.price }}"
+                                            data-carrier="{{ c.name }}"
+                                            data-inventory="{{ p.inventory }}"
+                                            data-type="phone"
+                                            style="border-radius: 8px; position: relative;">
+                                            {{ "{:,.0f}".format(p.price) }} đ
 
-                                                {% if p.inventory <= 0 %}
-                                                <div class="small text-danger" style="font-size: 0.75rem; font-weight: normal;">(Hết hàng)</div>
-                                                {% endif %}
+                                            {% if p.inventory <= 0 %}
+                                            <div class="small text-danger"
+                                                 style="font-size: 0.75rem; font-weight: normal;">(Hết hàng)
+                                            </div>
+                                            {% endif %}
                                             </button>
                                         </div>
                                         {% endfor %}
@@ -125,9 +138,12 @@
                                 {% for c in game_categories %}
                                 <li class="nav-item me-3 mb-2" role="presentation">
                                     <button class="nav-link {% if loop.first %}active{% endif %} p-1 border"
-                                            id="tab-game-{{ c.id }}" data-bs-toggle="pill" data-bs-target="#content-game-{{ c.id }}"
+                                            id="tab-game-{{ c.id }}" data-bs-toggle="pill"
+                                            data-bs-target="#content-game-{{ c.id }}"
                                             type="button" role="tab" style="border-radius: 8px;">
-                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}" alt="{{ c.name }}" style="height: 45px; width: 100px; object-fit: contain;">
+                                        <img src="{{ c.image or 'https://via.placeholder.com/120x50' }}"
+                                             alt="{{ c.name }}"
+                                             style="height: 45px; width: 100px; object-fit: contain;">
                                     </button>
                                 </li>
                                 {% endfor %}
@@ -136,24 +152,28 @@
                             <h6 class="fw-bold mb-3">Chọn mệnh giá</h6>
                             <div class="tab-content" id="game-provider-tabsContent">
                                 {% for c in game_categories %}
-                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="content-game-{{ c.id }}" role="tabpanel">
+                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
+                                     id="content-game-{{ c.id }}" role="tabpanel">
                                     <div class="row g-3">
                                         {% for p in products if p.category_id == c.id %}
                                         <div class="col-lg-3 col-md-4 col-sm-6 col-6">
-                                             <button class="btn w-100 py-2 fw-bold product-btn {% if p.inventory > 0 %}btn-outline-success{% else %}btn-outline-secondary disabled{% endif %}"
-                                                    {% if p.inventory <= 0 %} disabled{% endif %}
-                                                    data-id="{{ p.id }}"
-                                                    data-name="{{ p.name }}"
-                                                    data-price="{{ p.price }}"
-                                                    data-carrier="{{ c.name }}"
-                                                    data-inventory="{{ p.inventory }}"
-                                                    data-type="game"
-                                                    style="border-radius: 8px;">
-                                                {{ "{:,.0f}".format(p.price) }} đ
+                                            <button class="btn w-100 py-2 fw-bold product-btn {% if p.inventory > 0 %}btn-outline-success{% else %}btn-outline-secondary disabled{% endif %}"
+                                                    {% if p.inventory
+                                            <= 0 %} disabled{% endif %}
+                                            data-id="{{ p.id }}"
+                                            data-name="{{ p.name }}"
+                                            data-price="{{ p.price }}"
+                                            data-carrier="{{ c.name }}"
+                                            data-inventory="{{ p.inventory }}"
+                                            data-type="game"
+                                            style="border-radius: 8px;">
+                                            {{ "{:,.0f}".format(p.price) }} đ
 
-                                                {% if p.inventory <= 0 %}
-                                                <div class="small text-danger" style="font-size: 0.75rem; font-weight: normal;">(Hết hàng)</div>
-                                                {% endif %}
+                                            {% if p.inventory <= 0 %}
+                                            <div class="small text-danger"
+                                                 style="font-size: 0.75rem; font-weight: normal;">(Hết hàng)
+                                            </div>
+                                            {% endif %}
                                             </button>
                                         </div>
                                         {% endfor %}
@@ -193,7 +213,8 @@
                             <span class="text-secondary">Số lượng:</span>
                             <div class="input-group" style="width: 120px;">
                                 <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-minus">-</button>
-                                <input type="number" class="form-control form-control-sm text-center fw-bold" id="bill-quantity" name="quantity" value="1" min="1" readonly>
+                                <input type="number" class="form-control form-control-sm text-center fw-bold"
+                                       id="bill-quantity" name="quantity" value="1" min="1" readonly>
                                 <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-plus">+</button>
                             </div>
                         </div>
@@ -203,7 +224,8 @@
                             <strong id="bill-total" class="text-danger fs-4">0 đ</strong>
                         </div>
 
-                        <button type="button" class="btn btn-primary w-100 fw-bold py-3 fs-5" id="btn-buy" disabled style="border-radius: 8px;">
+                        <button type="button" class="btn btn-primary w-100 fw-bold py-3 fs-5" id="btn-buy" disabled
+                                style="border-radius: 8px;">
                             Thêm vào giỏ hàng
                         </button>
                     </form>
