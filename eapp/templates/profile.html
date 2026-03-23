@@ -1,0 +1,70 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Hồ sơ cá nhân - Hệ thống bán thẻ cào{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h3 class="fw-bold text-uppercase mb-4 text-center">Hồ Sơ Của Tôi</h3>
+
+            {% if msg %}
+            <div class="alert alert-{{ status }} alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 8px;">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-body p-5">
+
+                    <form method="post" action="/profile" enctype="multipart/form-data">
+                        <div class="row">
+
+                            <div class="col-md-4 text-center mb-4 mb-md-0 border-end">
+                                <img src="{{ current_user.avatar }}" alt="Avatar"
+                                     class="rounded-circle img-thumbnail mb-3"
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+
+                                <div class="mb-3">
+                                    <label for="avatar" class="form-label text-secondary small">Đổi ảnh đại diện</label>
+                                    <input class="form-control form-control-sm" type="file" id="avatar" name="avatar" accept="image/*">
+                                </div>
+                                <div class="badge bg-primary rounded-pill px-3 py-2">
+                                    Vai trò: {{ current_user.user_role.name }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-8 ps-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Tên đăng nhập</label>
+                                    <input type="text" class="form-control bg-light" value="{{ current_user.username }}" readonly>
+                                    <small class="text-muted">Tên đăng nhập không thể thay đổi.</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="name" class="form-label fw-bold">Họ và Tên</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="email" class="form-label fw-bold">Địa chỉ Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary fw-bold py-2" style="border-radius: 8px;">
+                                        <i class="bi bi-save"></i> Lưu thay đổi
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

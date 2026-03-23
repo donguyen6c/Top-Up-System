@@ -326,6 +326,28 @@ def promotion_view():
     discounts = dao.load_discounts()
     return render_template('promotion.html', discounts=discounts)
 
+@app.route('/profile', methods=['GET', 'POST'])
+def profile_view():
+    if not current_user.is_authenticated:
+        return redirect('/login?next=/profile')
+
+    msg = ""
+    status = ""
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        avatar_file = request.files.get('avatar')
+
+        try:
+            dao.update_profile(current_user.id, name, email, avatar_file)
+            msg = "Cập nhật thông tin thành công!"
+            status = "success"
+        except Exception as ex:
+            msg = str(ex)
+            status = "danger"
+
+    return render_template('profile.html', msg=msg, status=status)
 @app.context_processor
 def common_response():
     cart = session.get('cart', {})

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
@@ -43,6 +44,16 @@ def auth_user(username, password):
                              User.password==password).first()
 
 def add_user(name, username, password, avatar, email):
+    if len(username) < 5:
+        raise ValueError("username phai it nhat co 5 ki tu")
+    if len(password) < 8:
+        raise ValueError("mat khau phai it nhat co 8 ki tu")
+    if not re.search(r'[0-9]', password):
+        raise ValueError("Mật khẩu phải chứa ít nhất một chữ số")
+    if not re.search(r'[a-z]', password):
+        raise ValueError("Mật khẩu phải chứa ít nhất một chữ thường")
+    if not re.search(r'[A-Z]', password):
+        raise ValueError("Mật khẩu phải chứa ít nhất một chữ hoa")
     password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
     u = User(name=name.strip(), username=username.strip(), password=password, email=email)
     if avatar:
@@ -225,3 +236,25 @@ def revenue_by_time(period="month"):
     return ((db.session.query(func.extract('month', Receipt.created_date), func.sum(Receipt.final_amount))
             .group_by(func.extract('month', Receipt.created_date)))
             .order_by(func.extract('month', Receipt.created_date)).all())
+
+def update_profile(user_id, name, email, avatar_file=None):
+    user = User.query.get(user_id)
+    if not user:
+        raise Exception("Tài khoản không tồn tại!")
+
+    existing_user = User.query.filter(User.email == email, User.id != user_id).first()
+    if existing_user:
+        raise Exception("Email này đã được sử dụng bởi một tài khoản khác!")
+
+    user.name = name
+    user.email = email
+
+    if avatar_file:
+        try:
+            res = cloudinary.uploader.upload(avatar_file)
+            user.avatar = res['secure_url']
+        except Exception as e:
+            raise Exception(f"Lỗi khi tải ảnh lên: {str(e)}")
+
+    db.session.commit()
+    return True

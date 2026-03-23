@@ -2,9 +2,12 @@ from flask_admin import Admin, AdminIndexView, BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user, logout_user
 from flask import redirect
+from wtforms import FileField
+
 from eapp.models import Category, Product, Card, User, Receipt, Discount, Banner, UserRole
 from eapp import app, db
 import eapp.dao as dao
+import cloudinary.uploader
 
 
 class AdminModelView(ModelView):
@@ -38,6 +41,36 @@ class CardView(AdminModelView):
         if not model.is_sold:
             model.product.inventory -= 1
 
+class DiscountView(AdminModelView):
+    column_labels = {
+        'code': 'Mã giảm giá',
+        'value': 'Giá trị',
+        'discount_type': 'Loại giảm',
+        'end_date': 'Ngày hết hạn',
+        'usage_limit': 'Giới hạn lượt dùng',
+        'used_count': 'Đã dùng'
+    }
+
+    def on_model_delete(self, model):
+        if len(model.receipts) > 0:
+            raise Exception(f"KHÔNG THỂ HỦY: Mã '{model.code}' đang được áp dụng trong các đơn hàng lịch sử hoặc đang xử lý!")
+
+
+class BannerView(AdminModelView):
+    # 1. Thêm nút Chọn file vào form
+    form_extra_fields = {
+        'image_file': FileField('Tải ảnh Banner')
+    }
+
+    form_excluded_columns = ['image_url']
+
+    def on_model_change(self, form, model, is_created):
+        avatar = form.image_file.data
+
+        if avatar:
+            res = cloudinary.uploader.upload(avatar)
+            model.image_url = res.get("secure_url")
+
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     def index(self):
@@ -67,15 +100,13 @@ class LogoutView(BaseView):
         return current_user.is_authenticated
 
 
-# Khởi tạo Admin (dùng giao diện bootstrap4 cho hiện đại)
 admin = Admin(app=app, name="Quản Trị Bán Thẻ", index_view=MyAdminIndexView())
 
-# Thêm các bảng vào Menu
 admin.add_view(AdminModelView(Category, db.session, name="Nhà mạng"))
 admin.add_view(AdminModelView(Product, db.session, name="Mệnh giá thẻ"))
 admin.add_view(CardView(Card, db.session, name="Kho thẻ"))
-admin.add_view(AdminModelView(Discount, db.session, name="Khuyến mãi"))
-admin.add_view(AdminModelView(Banner, db.session, name="Banner"))
+admin.add_view(DiscountView(Discount, db.session, name="Khuyến mãi"))
+admin.add_view(BannerView(Banner, db.session, name="Banner"))
 admin.add_view(AdminModelView(Receipt, db.session, name="Lịch sử Hóa đơn"))
 admin.add_view(AdminModelView(User, db.session, name="Tài khoản"))
 admin.add_view(StatsView(name='Thống kê & Báo cáo'))
