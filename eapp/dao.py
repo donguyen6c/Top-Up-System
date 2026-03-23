@@ -44,10 +44,15 @@ def auth_user(username, password):
                              User.password==password).first()
 
 def add_user(name, username, password, avatar, email):
+    if not name: raise ValueError("Thiếu trường name")
+    if not username: raise ValueError("Thiếu trường username")
+    if not email: raise ValueError("Thiếu trường email")
+    if not password: raise ValueError("Thiếu trường password")
+
     if len(username) < 5:
-        raise ValueError("username phai it nhat co 5 ki tu")
+        raise ValueError("Username phải ít nhất có 5 kí tự")
     if len(password) < 8:
-        raise ValueError("mat khau phai it nhat co 8 ki tu")
+        raise ValueError("Mật khẩu phải có ít nhất 8 kí tự")
     if not re.search(r'[0-9]', password):
         raise ValueError("Mật khẩu phải chứa ít nhất một chữ số")
     if not re.search(r'[a-z]', password):
@@ -65,7 +70,7 @@ def add_user(name, username, password, avatar, email):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Exception('Username đã tồn tại!')
+        raise Exception('Username hoặc email đã tồn tại!')
 
 
 def count_product_by_cate():
