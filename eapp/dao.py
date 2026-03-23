@@ -90,26 +90,36 @@ def add_receipt(user_id, cart, discount_code=None):
     db.session.add(r)
 
     for c in cart.values():
+        buy_qty = c['quantity']
+        product_id = c['id']
+
         d = ReceiptDetails(
-            quantity=c['quantity'],
+            quantity=buy_qty,
             unit_price=c['price'],
-            product_id=c['id'],
+            product_id=product_id,
             receipt=r
         )
         db.session.add(d)
 
-        available_cards = Card.query.filter(
-            Card.product_id == c['id'],
-            Card.is_sold == False
-        ).limit(c['quantity']).all()
-
-        if len(available_cards) < c['quantity']:
+        product = Product.query.get(product_id)
+        if not product:
             db.session.rollback()
-            raise Exception(f"Sản phẩm '{c['name']}' chỉ còn {len(available_cards)} thẻ trong kho. Vui lòng giảm số lượng!")
+            raise Exception(f"Sản phẩm '{c['name']}' không tồn tại trong hệ thống!")
+
+        available_cards = Card.query.filter(
+            Card.product_id == product_id,
+            Card.is_sold == False
+        ).limit(buy_qty).all()
+
+        if len(available_cards) < buy_qty:
+            db.session.rollback()
+            raise Exception(f"Sản phẩm '{c['name']}' chỉ còn {len(available_cards)} thẻ. Vui lòng giảm số lượng!")
 
         for card in available_cards:
             card.is_sold = True
             card.sold_receipt = r
+
+        product.inventory -= buy_qty
 
     if discount_id:
         discount_obj = Discount.query.get(discount_id)
@@ -121,6 +131,7 @@ def add_receipt(user_id, cart, discount_code=None):
         return True
     except Exception as e:
         db.session.rollback()
+        print(f"Lỗi thanh toán: {str(e)}")
         raise Exception("Có lỗi xảy ra trong quá trình ghi nhận đơn hàng!")
 
 
@@ -201,4 +212,16 @@ def get_receipts_by_user(user_id):
     return Receipt.query.filter(Receipt.user_id == user_id).order_by(Receipt.created_date.desc()).all()
 
 def get_cards_by_user(user_id):
-    return Card.query.join(Receipt, Card.receipt_id == Receipt.id).filter(Receipt.user_id == user_id, Card.is_sold == True).order_by(Receipt.created_date.desc()).all()
+    return (Card.query.join(Receipt, Card.receipt_id == Receipt.id).
+            filter(Receipt.user_id == user_id, Card.is_sold == True)
+            .order_by(Receipt.created_date.desc()).all())
+
+def revenue_by_product():
+    return (db.session.query(Product.id, Product.name, func.sum(ReceiptDetails.unit_price * ReceiptDetails.quantity))
+            .join(ReceiptDetails, ReceiptDetails.product_id == Product.id)
+            .group_by(Product.id, Product.name).all())
+
+def revenue_by_time(period="month"):
+    return ((db.session.query(func.extract('month', Receipt.created_date), func.sum(Receipt.final_amount))
+            .group_by(func.extract('month', Receipt.created_date)))
+            .order_by(func.extract('month', Receipt.created_date)).all())

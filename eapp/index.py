@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, jsonify, session
 from flask_login import login_user, logout_user, current_user
 
 from eapp import app, login, dao, utils
+from eapp.admin import *
 from eapp.dao import add_user
 from eapp.models import CardType, Product
 import traceback
@@ -36,9 +37,11 @@ def login_process():
     user = dao.auth_user(username=username, password=password)
     if user:
         login_user(user=user)
-
-    next = request.args.get('next')
-    return redirect(next if next else '/')
+        next_page = request.args.get('next')
+        return redirect(next_page if next_page else '/')
+    else:
+        err_msg = "Tên đăng nhập hoặc mật khẩu không chính xác!"
+        return render_template('login.html', err_msg=err_msg)
 
 @app.route('/register')
 def register_view():

@@ -76,7 +76,7 @@
 <script>
     function copyCode(code) {
         navigator.clipboard.writeText(code).then(() => {
-            alert("Đã sao chép mã giảm giá: " + code + "\nBạn có thể dán mã này ở bước thanh toán!");
+            alert("Đã sao chép mã giảm giá: " + code );
         }).catch(err => {
             console.error('Lỗi khi copy', err);
         });
@@ -84,7 +84,6 @@
 </script>
 
 <style>
-    /* Hiệu ứng hover cho thẻ Promo */
     .promo-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }

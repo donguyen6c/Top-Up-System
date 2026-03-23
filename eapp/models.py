@@ -46,6 +46,9 @@ class Category(BaseModel):
     image = Column(String(255), nullable=True)
     products = relationship('Product', backref='category', lazy=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Product(BaseModel):
     name = Column(String(255), nullable=False)
@@ -54,6 +57,9 @@ class Product(BaseModel):
     category_id = Column(Integer, ForeignKey(Category.id), nullable=False)
     cards = relationship('Card', backref='product', lazy=True)
     details = relationship('ReceiptDetails', backref='product', lazy=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Card(BaseModel):
@@ -82,6 +88,9 @@ class Discount(BaseModel):
     usage_limit = db.Column(db.Integer, default=1)
     used_count = db.Column(db.Integer, default=0)
     receipts = relationship('Receipt', backref='discount_applied', lazy=True)
+
+    def __str__(self):
+        return self.code
 
 
 class Receipt(BaseModel):
@@ -180,7 +189,7 @@ if __name__ == '__main__':
 
         expiry_date_future = datetime.now() + timedelta(days=365)
         for pro in product_objs:
-            for i in range(5):
+            for i in range(pro.inventory):
                 serial = f"{pro.category.name[:3].upper()}-{uuid.uuid4().hex[:8].upper()}"
                 pin = f"PIN{uuid.uuid4().hex[:12].upper()}"
                 card = Card(serial_number=serial, pin_code=pin, expiry_date=expiry_date_future,
