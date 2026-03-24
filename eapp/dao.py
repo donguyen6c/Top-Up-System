@@ -59,6 +59,8 @@ def add_user(name, username, password, avatar, email):
         raise ValueError("Mật khẩu phải chứa ít nhất một chữ thường")
     if not re.search(r'[A-Z]', password):
         raise ValueError("Mật khẩu phải chứa ít nhất một chữ hoa")
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        raise ValueError("Email không hợp lệ")
     password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
     u = User(name=name.strip(), username=username.strip(), password=password, email=email)
     if avatar:

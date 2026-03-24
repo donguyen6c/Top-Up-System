@@ -22,17 +22,17 @@ def test_avatar(test_session, mock_cloudinary):
     add_user(name="abc", username="avataruser", password="aBc@1234",
              avatar="test", email="avatar@test.com")
 
-    u = User.query.filter_by(User.name.__eq__('abc')).first()
+    u = User.query.filter(User.name.__eq__('abc')).first()
     assert u.avatar == "https://fake-image.com"
 
 @pytest.mark.parametrize("name, username, password, email, msg", [
     (None, "tester", "aBc@1234", "test@gmail.com", ""),
-    ("abc", "test", "aBc@1234", "test@gmail.com", "Username phải có ít nhất 5 kí tự"),
-    ("abc", "tester", "aBc@1234", None , "Email không được bỏ trống"),
+    ("abc", "test", "aBc@1234", "test@gmail.com", "Username phải ít nhất có 5 kí tự"),
+    ("abc", "tester", "aBc@1234", None, "Thiếu trường email"),
     ("abc", "tester", "aBc@12", "test@gmail.com", "Mật khẩu phải có ít nhất 8 kí tự"),
-    ("abc", "tester", "test@Test", "test@gmail.com", "Mật khẩu phải có ít nhất 1 chữ số"),
-    ("abc", "tester", "test@1111", "test@gmail.com", "Mật khẩu phải có ít nhất 1 chữ hoa"),
-    ("abc", "tester", "TTTT111@", "test@gmail.com", "Mật khẩu phải có ít nhất 1 chữ thường"),
+    ("abc", "tester", "test@Test", "test@gmail.com", "Mật khẩu phải chứa ít nhất một chữ số"),
+    ("abc", "tester", "test@1111", "test@gmail.com", "Mật khẩu phải chứa ít nhất một chữ hoa"),
+    ("abc", "tester", "TTTT111@", "test@gmail.com", "Mật khẩu phải chứa ít nhất một chữ thường"),
     ("abc", "tester", "aBc@1234", "test.com" , "Email không hợp lệ"),
     ("abc", "tester", "aBc@1234", "test@com", "Email không hợp lệ"),
     ("abc", "tester", "aBc@1234", "test@", "Email không hợp lệ"),

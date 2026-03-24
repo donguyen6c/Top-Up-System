@@ -6,7 +6,7 @@ import cloudinary
 
 app = Flask(__name__)
 app.secret_key = 'topupsystem-16032026'
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Abcd123,@localhost/salecarddb?charset=utf8mb4"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Abcd123@localhost/salecarddb?charset=utf8mb4"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 
 
