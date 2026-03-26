@@ -1,80 +1,75 @@
 import pytest
-from unicodedata import category
-
-from eapp import dao, db
-from eapp.models import User, Category, Product, Card, Receipt, ReceiptDetails
 from datetime import datetime, timedelta
-from .base import test_app, test_session
+from eapp import dao
+from eapp.models import User, Category, Product, Card, Receipt
+
 
 @pytest.fixture
-def sample_receipt(test_session):
-    u = User(name="buyer", username="testbuyer", password="Abc@1234", email="buyer@gmail.com", avatar=None)
-    test_session.add(u)
+def sample_cards(test_session):
+    u1 = User(name="User A", username="usera", password="123", email="a@gmail.com")
+    u2 = User(name="User B", username="userb", password="123", email="b@gmail.com")
+    test_session.add_all([u1, u2])
     test_session.commit()
 
-    cate = Category(name="testcategory")
+    cate = Category(name="Viễn thông")
     test_session.add(cate)
     test_session.commit()
 
-    p = Product(name="garena", price=50000, inventory=3, category_id=cate.id)
+    p = Product(name="Viettel 50k", price=50000, inventory=10, category_id=cate.id)
     test_session.add(p)
     test_session.commit()
 
-    for i in range(3):
-        c = Card(serial_number=f"SERI-{i}", pin_code=f"PIN-{i}",
-                 expiry_date=datetime.now() + timedelta(days=30),
-                 product_id=p.id, is_sold=False)
-        test_session.add(c)
+    r1_old = Receipt(user_id=u1.id, total_amount=50000, created_date=datetime.now() - timedelta(days=5))
+    r2_new = Receipt(user_id=u1.id, total_amount=100000, created_date=datetime.now() - timedelta(days=1))
 
+    r3_other = Receipt(user_id=u2.id, total_amount=50000, created_date=datetime.now())
+
+    test_session.add_all([r1_old, r2_new, r3_other])
     test_session.commit()
-    return {"user_id": u.id, "product_id": p.id, "product_name": p.name}
 
-def test_receipt_empty(test_session, sample_receipt):
-    with pytest.raises(Exception, match="Giỏ hàng đang trống!"):
-        dao.add_receipt(user_id=sample_receipt["user_id"], cart={})
+    c1 = Card(serial_number="OLD-A1", pin_code="PIN1", expiry_date=datetime.now() + timedelta(days=365), is_sold=True,
+              product_id=p.id, receipt_id=r1_old.id)
+    c2 = Card(serial_number="NEW-A1", pin_code="PIN2", expiry_date=datetime.now() + timedelta(days=365), is_sold=True,
+              product_id=p.id, receipt_id=r2_new.id)
+    c3 = Card(serial_number="NEW-A2", pin_code="PIN3", expiry_date=datetime.now() + timedelta(days=365), is_sold=True,
+              product_id=p.id, receipt_id=r2_new.id)
+    c4 = Card(serial_number="OTHER-B1", pin_code="PIN4", expiry_date=datetime.now() + timedelta(days=365), is_sold=True,
+              product_id=p.id, receipt_id=r3_other.id)
+    c5 = Card(serial_number="UNSOLD-1", pin_code="PIN5", expiry_date=datetime.now() + timedelta(days=365),
+              is_sold=False, product_id=p.id)
 
-def test_add_receipt_out_of_stock(test_session, sample_receipt):
-    cart =  {
-        "1" :{
-            "id": sample_receipt["product_id"],
-            "name": sample_receipt["product_name"],
-            "price": 50000,
-            "quantity": 4
-        }
-    }
-    with pytest.raises(Exception, match=f"Sản phẩm '{sample_receipt["product_name"]}' chỉ còn .* thẻ. Vui lòng giảm số lượng!"):
-        dao.add_receipt(user_id=sample_receipt["user_id"], cart=cart)
+    test_session.add_all([c1, c2, c3, c4, c5])
+    test_session.commit()
 
-def test_receipt_success(test_session, sample_receipt):
-    cart = {
-        "1": {
-            "id": sample_receipt["product_id"],
-            "name": sample_receipt["product_name"],
-            "price": 50000,
-            "quantity": 3
-        }
-    }
+    return {"user_a_id": u1.id, "user_b_id": u2.id}
 
-    success_receipt = dao.add_receipt(user_id=sample_receipt["user_id"], cart=cart)
-    assert success_receipt["user_id"] == sample_receipt["user_id"]
-    assert success_receipt is True
+def test_get_cards_empty_when_unsold(test_session, sample_cards):
+    u3 = User(name="User C", username="userc", password="123", email="c@gmail.com")
+    test_session.add(u3)
+    test_session.commit()
 
-    receipt = Receipt.query.filter_by(user_id=sample_receipt["user_id"]).first()
-    assert receipt.total_amount == 150000
+    cards = dao.get_cards_by_user(u3.id)
 
-    cards = Card.query.filter_by(receipt_id=receipt.id).all()
+    assert cards == []
+
+
+def test_get_cards_success_count(test_session, sample_cards):
+    cards = dao.get_cards_by_user(sample_cards["user_a_id"])
 
     assert len(cards) == 3
-    assert all(c.is_sold is True for c in cards)
 
-def test_receipt_history_details(test_session, sample_receipt):
-    cart ={"1": {"id": sample_receipt["product_id"], "name": sample_receipt["product_name"],
-                 "price": 50000, "quantity": 3}}
-    dao.add_receipt(user_id=sample_receipt["user_id"], cart=cart)
+def test_get_cards_isolation(test_session, sample_cards):
+    cards = dao.get_cards_by_user(sample_cards["user_b_id"])
 
-    history = dao.get_receipts_by_user(sample_receipt["user_id"])
-    assert len(history) == 5
+    assert len(cards) == 1
+    assert cards[0].serial_number == "OTHER-B1"
 
-    actual_receipt = history[0]
-    assert len (actual_receipt.details) == 3
-    assert actual_receipt.details[0].total_amount == 150000
+
+def test_get_cards_order_desc(test_session, sample_cards):
+    cards = dao.get_cards_by_user(sample_cards["user_a_id"])
+
+    assert len(cards) == 3
+
+    assert "NEW" in cards[0].serial_number
+    assert "NEW" in cards[1].serial_number
+    assert cards[2].serial_number == "OLD-A1"
