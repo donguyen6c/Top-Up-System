@@ -55,3 +55,17 @@ def test_security_admin_access_discount(test_client, mock_users):
         login_user(mock_users['user'])
         res_user_delete = test_client.post('/admin/discount/delete/', data={'id': '1'})
         assert res_user_delete.status_code in [302, 401, 403]
+
+def test_validate_create_discount(test_session):
+    admin_view = DiscountView(Discount, test_session)
+
+    bad_time = Discount(start_date=datetime.now(), end_date=datetime.now() - timedelta(days=5))
+    with pytest.raises(ValidationError, match="sau ngày bắt đầu"):
+        admin_view.on_model_change(form=None, model=bad_time, is_created=True)
+
+    bad_value = Discount(
+        discount_type=DiscountType.PERCENTAGE, value=60,
+        start_date=datetime.now(), end_date=datetime.now() + timedelta(days=5)
+    )
+    with pytest.raises(ValidationError, match="không được vượt quá 50%"):
+        admin_view.on_model_change(form=None, model=bad_value, is_created=True)
