@@ -80,3 +80,45 @@ def test_guest_cannot_apply_discount(test_client):
 def test_guest_cannot_access_checkout_page(test_client):
     res = test_client.get('/checkout')
     assert res.status_code in [302, 401, 403]
+
+def test_discount_empty_cart(test_session):
+    result = check_discount("GGS1", {})
+    assert result['success'] is False
+    assert result['discount_amount'] == 0
+    assert result['message'] == "Giỏ hàng rỗng!"
+
+
+def test_discount_is_not_exist(test_session):
+    cart = {"1": {"id": "01", "name": "Thẻ Game", "price": 50000, "quantity": 1, "card_type": "game"}}
+    result = check_discount("FAKE_CODE", cart)
+    assert result['success'] is False
+    assert result['discount_amount'] == 0
+    assert result['message'] == "Mã giảm giá không tồn tại!"
+
+
+def test_limit_discount_usage(test_session, sample_discounts):
+    d = Discount.query.filter_by(code=sample_discounts["game_code"]).first()
+    d.used_count = 10
+    test_session.commit()
+
+    cart = {"1": {"id": "01", "price": 50000, "quantity": 1, "card_type": "game"}}
+    result = check_discount(d.code, cart)
+    assert result['success'] is False
+    assert result['discount_amount'] == 0
+    assert "hết lượt sử dụng" in result['message']
+
+
+def test_expired_discount(test_session, sample_discounts):
+    cart = {"1": {"id": "01", "price": 50000, "quantity": 1, "card_type": "phone"}}
+    result = check_discount(sample_discounts["expired_code"], cart)
+    assert result['success'] is False
+    assert "hết hạn" in result['message']
+
+
+def test_discount_success(test_session, sample_discounts):
+    cart = {"1": {"id": "01", "price": 50000, "quantity": 2, "card_type": "game"}}
+    result = check_discount(sample_discounts["game_code"], cart)
+
+    assert result['success'] is True
+    assert result['discount_amount'] == 20000
+    assert result['discount_id'] is not None
