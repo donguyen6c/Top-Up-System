@@ -69,3 +69,14 @@ def test_validate_create_discount(test_session):
     )
     with pytest.raises(ValidationError, match="không được vượt quá 50%"):
         admin_view.on_model_change(form=None, model=bad_value, is_created=True)
+
+
+def test_guest_cannot_apply_discount(test_client):
+    res = test_client.post('/api/apply-discount', json={'code': 'GGS1'})
+    assert res.status_code == 401
+    assert 'chưa đăng nhập' in res.get_json()['message'].lower()
+
+
+def test_guest_cannot_access_checkout_page(test_client):
+    res = test_client.get('/checkout')
+    assert res.status_code in [302, 401, 403]
