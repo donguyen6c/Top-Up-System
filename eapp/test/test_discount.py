@@ -122,3 +122,15 @@ def test_discount_success(test_session, sample_discounts):
     assert result['success'] is True
     assert result['discount_amount'] == 20000
     assert result['discount_id'] is not None
+
+
+def test_validate_delete_discount(test_session, mock_users, sample_discounts):
+    admin_view = DiscountView(Discount, test_session)
+    d = Discount.query.filter_by(code=sample_discounts["game_code"]).first()
+
+    receipt = Receipt(user_id=mock_users['admin'].id, total_amount=100, discount_id=d.id)
+    test_session.add(receipt)
+    test_session.commit()
+
+    with pytest.raises(Exception, match="đang được áp dụng"):
+        admin_view.on_model_delete(model=d)
