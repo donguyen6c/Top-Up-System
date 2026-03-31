@@ -7,6 +7,7 @@ def create_app():
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config["PAGE_SIZE"] = 2
+    app.config["TESTING"] = True
     db.init_app(app)
 
     return app
@@ -30,3 +31,7 @@ def mock_cloudinary(monkeypatch):
         return {'secure_url':'https://fake-image.com'}
 
     monkeypatch.setattr('cloudinary.uploader.upload',fake_upload)
+
+@pytest.fixture
+def test_client(test_app):
+    return test_app.test_client()

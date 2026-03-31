@@ -4,7 +4,9 @@ from flask_login import current_user, logout_user
 from flask import redirect
 from wtforms import FileField
 
-from eapp.models import Category, Product, Card, User, Receipt, Discount, Banner, UserRole
+from wtforms.validators import ValidationError
+from datetime import datetime
+from eapp.models import Category, Product, Card, User, Receipt, Discount, Banner, UserRole, DiscountType
 from eapp import app, db
 import eapp.dao as dao
 import cloudinary.uploader
@@ -51,13 +53,21 @@ class DiscountView(AdminModelView):
         'used_count': 'Đã dùng'
     }
 
+    def on_model_change(self, form, model, is_created):
+        if model.start_date and model.start_date.date() < datetime.now().date() and is_created:
+            raise ValidationError("Thời gian hiệu lực phải lớn hơn hoặc bằng ngày hiện tại.")
+        if model.end_date <= model.start_date:
+            raise ValidationError("Ngày kết thúc phải sau ngày bắt đầu.")
+
+        if model.discount_type == DiscountType.PERCENTAGE and model.value > 50:
+            raise ValidationError("Giá trị giảm phần trăm không được vượt quá 50%.")
+
     def on_model_delete(self, model):
         if len(model.receipts) > 0:
             raise Exception(f"KHÔNG THỂ HỦY: Mã '{model.code}' đang được áp dụng trong các đơn hàng lịch sử hoặc đang xử lý!")
 
 
 class BannerView(AdminModelView):
-    # 1. Thêm nút Chọn file vào form
     form_extra_fields = {
         'image_file': FileField('Tải ảnh Banner')
     }
